@@ -14,6 +14,7 @@ using static DataSatuan;
 public class EntityController : MonoBehaviour
 {
     public static EntityController instance;
+    public static List<string> listSatuan = new List<string>();
 
     public GameObject prefabSatuan;
     public GameObject prefabMisi;
@@ -38,13 +39,11 @@ public class EntityController : MonoBehaviour
     {
         Debug.Log("Mulai load entity");
 
-        // Load Data CB dari Database
         var plotting = await WargamingAPI.loadDataCB(id_user, id_kogas, id_scenario, nama_document);
 
-        // Spawn Entity Satuan
         await LoadEntitySatuan(JArrayExtended.setJArrayResult(plotting, 0));
         LoadMisiSatuan(JArrayExtended.setJArrayResult(plotting, 13));
-        //await LoadEntityRadar(JArrayExtended.setJArrayResult(plotting, 7));
+        await LoadEntityRadar(JArrayExtended.setJArrayResult(plotting, 7));
 
         Debug.Log("Selesai load entity");
     }
@@ -112,44 +111,12 @@ public class EntityController : MonoBehaviour
         entityData.infoSatuan = satuan.data_info;
 
         GameObject radarChild = entitySatuan.transform.GetChild(1).gameObject;
-        radarChild.GetComponent<CircleCollider2D>().radius = getRadiusRadarEntity("utama", satuan.tipe_tni, satuan.height) / 1000;
+        radarChild.GetComponent<CircleCollider2D>().radius = getRadiusRadarEntity("utama", satuan.tipe_tni, satuan.height) / 100;
 
         GameObject jarakPandangChild = entitySatuan.transform.GetChild(2).gameObject;
-        jarakPandangChild.GetComponent<CircleCollider2D>().radius = getRadiusRadarEntity("jarakPandang", satuan.tipe_tni, satuan.height) / 1000;
+        jarakPandangChild.GetComponent<CircleCollider2D>().radius = getRadiusRadarEntity("jarakPandang", satuan.tipe_tni, satuan.height) / 100;
 
-        //GameObject body = new();
-        //body.name = "Badan";
-        //body.tag = "Badan Entity";
-        //BoxCollider2D boxCollider = body.AddComponent<BoxCollider2D>();
-        //boxCollider.isTrigger = true;
-        //Rigidbody2D bodyRigid = body.AddComponent<Rigidbody2D>();
-        //bodyRigid.gravityScale = 0f;
-        //body.transform.position = new Vector3(0, 0, 0);
-        //body.transform.parent = entitySatuan.transform;
-
-        //GameObject radar = new();
-        //radar.name = "Radar";
-        //radar.tag = "Radar Entity";
-        //CircleCollider2D circleCollider = radar.AddComponent<CircleCollider2D>();
-        //circleCollider.radius = getRadiusRadarEntity("utama", satuan.tipe_tni, satuan.height) / 1000;
-        //circleCollider.isTrigger = true;
-        //Rigidbody2D radarRigid = radar.AddComponent<Rigidbody2D>();
-        //radarRigid.gravityScale = 0f;
-        //radar.transform.position = new Vector3(0, 0, 0);
-        //radar.transform.parent = entitySatuan.transform;
-        //radar.SetActive(false);
-
-        //GameObject jarakPandang = new();
-        //jarakPandang.name = "Jarak Pandang";
-        //jarakPandang.tag = "Jarak Pandang Entity";
-        //CircleCollider2D circleJarakPandang = jarakPandang.AddComponent<CircleCollider2D>();
-        //circleJarakPandang.radius = getRadiusRadarEntity("jarakPandang", satuan.tipe_tni, satuan.height) / 1000;
-        //circleJarakPandang.isTrigger = true;
-        //Rigidbody2D rigidJarakPandang = jarakPandang.AddComponent<Rigidbody2D>();
-        //rigidJarakPandang.gravityScale = 0f;
-        //jarakPandang.transform.position = new Vector3(0, 0, 0);
-        //jarakPandang.transform.parent = entitySatuan.transform;
-        //jarakPandang.SetActive(true);
+        listSatuan.Add(satuan.id_satuan);
 
         await ColyseusController.instance.CreateSatuan(new Dictionary<string, object>
         {
@@ -332,10 +299,9 @@ public class EntityController : MonoBehaviour
                 Vector3 jalurPosition = new Vector2(setiapJalur.lng * 1000, setiapJalur.lat * 1000);
 
                 GameObject objectjalur = Instantiate(prefabMisi, jalurPosition, Quaternion.identity);
-                objectjalur.name = mission.id;
+                objectjalur.name = mission.id_mission;
 
                 DataMisi dataMisi = objectjalur.AddComponent<DataMisi>();
-                dataMisi.id = mission.id;
                 dataMisi.id_mission = mission.id_mission;
                 dataMisi.id_object = mission.id_object;
                 dataMisi.tgl_mulai = mission.tgl_mulai;
@@ -375,7 +341,9 @@ public class EntityController : MonoBehaviour
         }
         catch (Exception err)
         {
-            Debug.LogWarning(err.ToString());
+            Debug.LogWarning(err);
+            Destroy(GameObject.Find(mission.id_mission));
+
         }
     }
 
@@ -411,7 +379,22 @@ public class EntityController : MonoBehaviour
     public bool RemoveMisi(Mission misi)
     {
         GameObject misiObject = GameObject.Find(misi.id);
-        Destroy(misiObject);
+        GameObject satuan = GameObject.Find(misi.id_object);
+
+        List<GameObject> listMisi = satuan.GetComponent<DataSatuan>().jalurMisi;
+        List<GameObject> listMisiBaru = new List<GameObject>();
+
+        foreach (GameObject misiSatuan in listMisi)
+        {
+            if (misiSatuan.GetComponent<DataMisi>().id_mission != misi.id)
+            {
+                listMisiBaru.Add(misiSatuan);
+            }
+        }
+
+        satuan.GetComponent<DataSatuan>().jalurMisi = listMisiBaru;
+
+        Debug.Log(misi.id_object + ": Menghapus misi " + misi.id);
 
         return true;
     }
@@ -436,6 +419,7 @@ public class EntityController : MonoBehaviour
         propMinimap["removeOnEnd"] = true;
         await ColyseusController.instance.CreateSetJalurMiniMap(propMinimap);
 
+        Debug.Log(misi.id_object + ": Membuat misi " + mission.id);
 
         return true;
     }
@@ -456,13 +440,13 @@ public class EntityController : MonoBehaviour
 
     public async Task SpawnRadarSatuan(EntityRadar radar)
     {
-        GameObject entityRadar = Instantiate(prefabSatuan);
+        GameObject entityRadar = Instantiate(prefabRadar);
         entityRadar.name = radar.nama;
         entityRadar.transform.position = new Vector2(radar.lng * 1000, radar.lat * 1000);
         entityRadar.transform.parent = radarContainer.transform;
         //entityRadar.AddComponent<RadarScript>();
 
-        DataRadar dataSatuanRadar = entityRadar.GetComponent<DataRadar>();
+        DataRadar dataSatuanRadar = entityRadar.AddComponent<DataRadar>();
         dataSatuanRadar.id_entity = radar.nama;
         dataSatuanRadar.id_user = radar.id_user;
         dataSatuanRadar.infoRadar = EntityRadarInfo.FromJson(radar.info_radar);
@@ -479,5 +463,39 @@ public class EntityController : MonoBehaviour
         dataRadar["isActive"] = true;
 
         await ColyseusController.instance.CreateSatuan(dataRadar);
+    }
+
+    public void SetRadarScript()
+    {
+        foreach (string id_satuan in listSatuan)
+        {
+            GameObject satuan = GameObject.Find(id_satuan);
+            GameObject radarChild = satuan.transform.GetChild(1).gameObject;
+            GameObject jarakPandangChild = satuan.transform.GetChild(2).gameObject;
+
+            if (satuan.GetComponent<RadarSatuanScript>())
+            {
+                // nothing
+            }
+            else
+            {
+                radarChild.AddComponent<RadarSatuanScript>();
+                jarakPandangChild.AddComponent<RadarSatuanScript>();
+            }
+        }
+    }
+
+    public void RefreshRadar()
+    {
+        foreach (string id_satuan in listSatuan)
+        {
+            GameObject satuan = GameObject.Find(id_satuan);
+
+            for (int i = 0; i < 2; i++)
+            {
+                satuan.transform.GetChild(1).gameObject.SetActive(!satuan.transform.GetChild(1).gameObject.activeSelf);
+                satuan.transform.GetChild(2).gameObject.SetActive(!satuan.transform.GetChild(2).gameObject.activeSelf);
+            }
+        }
     }
 }

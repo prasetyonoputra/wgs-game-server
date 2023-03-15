@@ -43,7 +43,7 @@ public class ColyseusController : MonoBehaviour
 
 	public async Task prepareRoomAsync()
 	{
-		client = new ColyseusClient("ws://localhost:2567");
+		client = new ColyseusClient("ws://192.168.10.245:2567");
 		room = await client.JoinOrCreate<State>("wargaming");
 		state = new ColyseusState();
 
@@ -220,24 +220,16 @@ public class ColyseusRoomMessage
 
 		room.OnMessage<DataArmor>("setArmorUnity", (data) =>
 		{
-			try
+			GameObject entity = GameObject.Find(data.id_object);
+			GameObject radarChild = entity.transform.GetChild(1).gameObject;
+			GameObject jarakPandangChild = entity.transform.GetChild(2).gameObject;
+			DataSatuan dataEntity = entity.GetComponent<DataSatuan>();
+
+			dataEntity.armor = float.Parse(data.armor);
+
+			if (dataEntity.armor <= 0)
 			{
-				GameObject entity = GameObject.Find(data.id_object);
-				DataSatuan dataEntity = entity.GetComponent<DataSatuan>();
-
-				dataEntity.armor = float.Parse(data.armor);
-
-				if (dataEntity.armor <= 0)
-				{
-					RadarSatuanScript radarSatuan = entity.GetComponent<RadarSatuanScript>();
-					radarSatuan.DeleteEntityFromRadar(entity);
-
-					entity.SetActive(false);
-				}
-			}
-			catch (Exception e)
-			{
-				Debug.LogError(e);
+				EntityController.instance.RefreshRadar();
 			}
 		});
 
@@ -258,10 +250,12 @@ public class ColyseusRoomMessage
 						GameObject radarChild = entity.transform.GetChild(1).gameObject;
 						GameObject jarakPandangChild = entity.transform.GetChild(2).gameObject;
 
-						radarChild.GetComponent<CircleCollider2D>().radius = float.Parse(dataRadar.RADAR_DET_RANGE, CultureInfo.InvariantCulture.NumberFormat) / 1000;
+						radarChild.GetComponent<CircleCollider2D>().radius = float.Parse(dataRadar.RADAR_DET_RANGE, CultureInfo.InvariantCulture.NumberFormat) * 10;
 
 						jarakPandangChild.SetActive(false);
 						radarChild.SetActive(true);
+
+						Debug.Log(dataEntity.id_entity + ": active detector");
 
 						break;
 					}
@@ -296,7 +290,7 @@ public class ColyseusRoomMessage
 						ColyseusController.instance.SetValueActvRadar(dataEntity.id_entity, JsonConvert.SerializeObject(dataEntity.listActvRadar));
 						ColyseusController.instance.SetValueDetectRadar(dataEntity.id_entity, JsonConvert.SerializeObject(dataEntity.listDetectRadar));
 
-						Debug.Log("Delete detector " + dataEntity.id_entity);
+						Debug.Log(dataEntity.id_entity + ": delete detector");
 					}
 				}
 

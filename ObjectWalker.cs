@@ -42,7 +42,10 @@ public class ObjectWalker : MonoBehaviour
                         }
                         else
                         {
-                            waypointIndex++;
+                            GameObject objectMisi = entityData.jalurMisi[waypointIndex];
+                            entityData.jalurMisi.RemoveAt(waypointIndex);
+                            Destroy(objectMisi);
+                            waypointIndex = 0;
                         }
                     }
                     else
