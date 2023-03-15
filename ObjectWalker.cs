@@ -10,14 +10,12 @@ public class ObjectWalker : MonoBehaviour
     private int waypointIndex = 0;
     private DateTime waktuMulaiMisi;
     private DateTimeOffset waktuMulai;
-
-    public void Start()
-    {
-        entityData = this.GetComponent<DataSatuan>();
-    }
+    Vector2 posisiSekarang, posisiTujuan;
+    double heading;
 
     void Update()
     {
+        entityData = this.GetComponent<DataSatuan>();
         float step = entityData.speed * Time.deltaTime * TimeController.instance.percepatan;
 
         try
@@ -30,12 +28,17 @@ public class ObjectWalker : MonoBehaviour
 
                 if (waktuMulai.ToUnixTimeMilliseconds() <= TimeController.instance.getDateTimeOffset().ToUnixTimeMilliseconds())
                 {
-                    if (TimeController.instance.isPlay)
+                    if (TimeController.instance.isPlaying)
                     {
-                        ColyseusController.instance.SendPosition(entityData.id_entity, transform.position, 0);
                         if (transform.position != entityData.jalurMisi[waypointIndex].transform.position)
                         {
+                            posisiSekarang = this.transform.position;
+                            posisiTujuan = entityData.jalurMisi[waypointIndex].transform.position;
+
+                            heading = FindAngle(posisiSekarang.y, posisiSekarang.x, posisiTujuan.y, posisiTujuan.x);
+
                             transform.position = Vector2.MoveTowards(transform.position, entityData.jalurMisi[waypointIndex].transform.position, step);
+                            ColyseusController.instance.SendPosition(entityData.id_entity, transform.position, heading);
                         }
                         else
                         {
@@ -55,31 +58,10 @@ public class ObjectWalker : MonoBehaviour
         }
     }
 
-    static double DegreeBearing(
-        double lat1, double lon1,
-        double lat2, double lon2)
+    static double FindAngle(double x1, double y1, double x2, double y2)
     {
-        var dLon = ToRad(lon2 - lon1);
-        var dPhi = Math.Log(
-            Math.Tan(ToRad(lat2) / 2 + Math.PI / 4) / Math.Tan(ToRad(lat1) / 2 + Math.PI / 4));
-        if (Math.Abs(dLon) > Math.PI)
-            dLon = dLon > 0 ? -(2 * Math.PI - dLon) : (2 * Math.PI + dLon);
-        return ToBearing(Math.Atan2(dLon, dPhi));
-    }
-
-    public static double ToRad(double degrees)
-    {
-        return degrees * (Math.PI / 180);
-    }
-
-    public static double ToDegrees(double radians)
-    {
-        return radians * 180 / Math.PI;
-    }
-
-    public static double ToBearing(double radians)
-    {
-        // convert radians to degrees (as bearing: 0...360)
-        return (ToDegrees(radians) + 360) % 360;
+        double dx = x2 - x1;
+        double dy = y2 - y1;
+        return Math.Atan2(dy, dx) * (180 / Math.PI);
     }
 }

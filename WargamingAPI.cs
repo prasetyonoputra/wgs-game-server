@@ -13,6 +13,27 @@ namespace Wargaming.Core.Network
     {
         static bool enableDebug = false;
 
+        public static async Task<string> GetDetailSatuan(string ID, string grup)
+        {
+            switch (grup)
+            {
+                case "1":
+                    grup = "getDetailVehicle";
+                    break;
+                case "2":
+                    grup = "getDetailShip";
+                    break;
+                case "3":
+                    grup = "getDetailAircraft";
+                    break;
+            }
+
+            var result = await NetworkRequest.GetRequest("http://localhost/eppkm/public/api/" + grup + "?id=" + ID);
+
+            if (result.data == null) return null;
+            return result.data;
+        }
+
         public static async Task<string> GetSkenarioAktif()
         {
             var result = await NetworkRequest.PostRequest("http://localhost/eppkm/public/api/getSkenarioAktif", null, enableDebug);

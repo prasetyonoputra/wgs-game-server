@@ -10,7 +10,7 @@ public class TimeController : MonoBehaviour
     public SkenarioAktifWaktu skenario;
     public DateTime  tanggalMulai, tanggalSelesai, waktuSekarang;
     public float elapsed = 0f, percepatan = 1f;
-    public bool isPlay = false;
+    public bool isPlaying = false;
 
     void Awake()
     {
@@ -39,14 +39,14 @@ public class TimeController : MonoBehaviour
 
     private void Update()
     {
-        if (isPlay)
+        if (isPlaying)
         {
             elapsed += Time.deltaTime * percepatan;
             if (elapsed >= 1f)
             {
                 elapsed = elapsed % 1f;
                 waktuSekarang = waktuSekarang.AddSeconds(1);
-                Debug.Log(waktuSekarang.ToString());
+                //Debug.Log(waktuSekarang.ToString());
 
                 ColyseusController.instance.SetTime(waktuSekarang.ToString());
             }
@@ -56,5 +56,32 @@ public class TimeController : MonoBehaviour
     public DateTimeOffset getDateTimeOffset()
     {
         return waktuSekarang;
+    }
+
+    internal void ChangeMedia(string action)
+    {
+        switch (action)
+        {
+            case "stop":
+                isPlaying = false;
+                break;
+            case "play":
+                isPlaying = true;
+                break;
+            case "start":
+                isPlaying = true;
+                break;
+            case "resume":
+                isPlaying = true;
+                break;
+            case "pause":
+                isPlaying = false;
+                break;
+        }
+    }
+
+    internal void SetPercepatan(int v)
+    {
+        percepatan = v;
     }
 }
