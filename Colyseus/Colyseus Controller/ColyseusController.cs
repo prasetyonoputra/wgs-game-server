@@ -138,6 +138,15 @@ public class ColyseusController : MonoBehaviour
 			["id_user"] = id_user
 		});
 	}
+
+	public async void SetStatusMisi(string idMisi, int statusMisi)
+	{
+		await room.Send("setStatusMisi", new Dictionary<string, object>
+		{
+			["id_misi"] = idMisi,
+			["status_misi"] = statusMisi
+		});
+	}
 }
 
 public class ColyseusState

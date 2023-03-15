@@ -39,6 +39,7 @@ public class ObjectWalker : MonoBehaviour
 
                             transform.position = Vector2.MoveTowards(transform.position, entityData.jalurMisi[waypointIndex].transform.position, step);
                             ColyseusController.instance.SendPosition(entityData.id_entity, transform.position, heading);
+                            ColyseusController.instance.SetStatusMisi(entityData.jalurMisi[waypointIndex].GetComponent<DataMisi>().id_mission, 1);
                         }
                         else
                         {

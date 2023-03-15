@@ -378,7 +378,6 @@ public class EntityController : MonoBehaviour
 
     public bool RemoveMisi(Mission misi)
     {
-        GameObject misiObject = GameObject.Find(misi.id);
         GameObject satuan = GameObject.Find(misi.id_object);
 
         List<GameObject> listMisi = satuan.GetComponent<DataSatuan>().jalurMisi;
@@ -386,13 +385,14 @@ public class EntityController : MonoBehaviour
 
         foreach (GameObject misiSatuan in listMisi)
         {
-            if (misiSatuan.GetComponent<DataMisi>().id_mission != misi.id)
+            if (misiSatuan.GetComponent<DataMisi>().tgl_mulai != misi.tgl_mulai)
             {
                 listMisiBaru.Add(misiSatuan);
             }
         }
 
         satuan.GetComponent<DataSatuan>().jalurMisi = listMisiBaru;
+        satuan.transform.position = Vector2.MoveTowards(satuan.transform.position, satuan.transform.position, satuan.GetComponent<DataSatuan>().speed);
 
         Debug.Log(misi.id_object + ": Menghapus misi " + misi.id);
 
