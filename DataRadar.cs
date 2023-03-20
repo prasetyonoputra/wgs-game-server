@@ -10,4 +10,6 @@ public class DataRadar : MonoBehaviour
     public EntityRadarInfo infoRadar;
     public EntityRadar entityRadar;
     public string type;
+    public List<Dictionary<string, object>> listDetectRadar = new List<Dictionary<string, object>>();
+    public List<Dictionary<string, object>> listActvRadar = new List<Dictionary<string, object>>();
 }

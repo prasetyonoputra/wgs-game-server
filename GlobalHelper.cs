@@ -534,6 +534,7 @@ namespace Wargaming.Core.GlobalParam
         {
             public string id { get; set; }
             public string id_mission { get; set; }
+            public string testID { get; set; }
             public string id_object { get; set; }
             public string tgl_mulai { get; set; }
             public string id_user { get; set; }
@@ -1094,7 +1095,7 @@ namespace Wargaming.Core.GlobalParam
             [JsonProperty("VEHICLE_CONSUME_FUEL")]
             public string fuelConsume { get; set; }
             [JsonProperty("VEHICLE_HEIGHT")]
-            public float height { get; set; }
+            public float? height { get; set; }
             [JsonProperty("VEHICLE_WIDTH")]
             public string width { get; set; }
             [JsonProperty("VEHICLE_WEIGHT")]

@@ -462,7 +462,7 @@ namespace Colyseus
                 }
                 else
                 {
-                    Debug.LogWarning("room.OnMessage not registered for: '" + type + "'");
+                    //Debug.LogWarning("room.OnMessage not registered for: '" + type + "'");
                 }
             }
         }

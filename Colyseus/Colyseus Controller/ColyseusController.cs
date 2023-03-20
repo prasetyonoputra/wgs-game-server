@@ -1,6 +1,7 @@
 using Colyseus;
 using Colyseus.Schema;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ public class ColyseusController : MonoBehaviour
 	public static ColyseusController instance;
 	public static ColyseusState state;
 	internal int typeWGS = 1;
+	const string serviceColyseus = "ws://localhost";
 
 	private void Awake()
 	{
@@ -43,7 +45,7 @@ public class ColyseusController : MonoBehaviour
 
 	public async Task prepareRoomAsync()
 	{
-		client = new ColyseusClient("ws://192.168.10.245:2567");
+		client = new ColyseusClient(serviceColyseus + ":2567");
 		room = await client.JoinOrCreate<State>("wargaming");
 		state = new ColyseusState();
 
@@ -63,32 +65,22 @@ public class ColyseusController : MonoBehaviour
 		room.State.missions.OnRemove += state.OnStateMissionRemove;
 	}
 
-	private void OnStateChange(MyRoomState state, bool isFirstState)
-	{
-		Debug.Log("State change!");
-	}
-
-	private void OnLeaveRoom(int code)
-	{
-		Debug.Log("Someone has leaved room!");
-	}
-
-	private void OnJoinRoom()
-	{
-		Debug.Log("Someone has joined room!");
-	}
-
 	public async Task CreateSatuan(Dictionary<string, object> dataEntity)
 	{
 		await room.Send("tambah_entity", dataEntity);
 	}
 
-	public async void CreateMisi(Dictionary<string, object> dataMission)
+	public async Task CreateMisi(Dictionary<string, object> dataMission)
 	{
 		await room.Send("tambah_misi", dataMission);
 	}
 
-	public async void SendPosition(string id_satuan, Vector2 position, double heading)
+	public async Task SendListText(JArray dataListTeks)
+	{
+		await room.Send("setListTexts", dataListTeks.ToString());
+	}
+
+	public async void SendPosition(string id_satuan, Vector2 position, double heading, double distance)
 	{
 		await room.Send("movement", new Dictionary<string, object>
 		{
@@ -96,7 +88,8 @@ public class ColyseusController : MonoBehaviour
 			["lat"] = position.y / 1000,
 			["lng"] = position.x / 1000,
 			["heading"] = heading,
-			["altitude"] = 0
+			["altitude"] = 0,
+			["jarakTempuh"] = distance
 		});
 	}
 
@@ -139,12 +132,53 @@ public class ColyseusController : MonoBehaviour
 		});
 	}
 
-	public async void SetStatusMisi(string idMisi, int statusMisi)
+	public async void SetStatusMisi(string idMisi, int statusMisi, string id)
 	{
 		await room.Send("setStatusMisi", new Dictionary<string, object>
 		{
 			["id_misi"] = idMisi,
 			["status_misi"] = statusMisi
+		});
+	}
+
+	public async void SetMedia(Dictionary<string, object> state)
+	{
+		await room.Send("media", state);
+	}
+
+	public async void SendMisiRanjau(string id_object, string value)
+	{
+		await room.Send("setMisiRanjau", new Dictionary<string, object>
+		{
+			["id_object"] = id_object,
+			["missionDefault"] = value
+		});
+	}
+
+	public async void SetOpacityObject(string id_object, int value)
+	{
+		await room.Send("setOpacityObject", new Dictionary<string, object>
+		{
+			["id_object"] = id_object,
+			["value"] = value
+		});
+	}
+
+	public async void SendListEmbarkasi(string id_object, List<string> listEmbarkasi)
+	{
+		await room.Send("embarkasi", new Dictionary<string, object>
+		{
+			["id_object"] = id_object,
+			["listEmbarkasi"] = JsonConvert.SerializeObject(listEmbarkasi)
+		});
+	}
+
+	public async void SetIconNow(string id_object, string value)
+	{
+		await room.Send("changeIcon", new Dictionary<string, object>
+		{
+			["id_object"] = id_object,
+			["iconNow"] = value
 		});
 	}
 }
@@ -180,7 +214,12 @@ public class ColyseusState
 	{
 		if (entity.type == "add_obstacle")
 		{
-			//EntityController.instance.SpawnObstacleOnAdd(entity);
+			_ = EntityController.instance.SpawnObstacleOnAdd(entity);
+		}
+
+		if (entity.type == "obstacle")
+		{
+			_ = EntityController.instance.SpawnObstacleOnAdd(entity);
 		}
 	}
 	public void OnStatePlayerLeave(string key, players players)
@@ -190,6 +229,7 @@ public class ColyseusState
 
 	public async void OnStateMissionAdd(string key, Mission mission)
 	{
+		Debug.Log("Ada tambah misi");
 		await EntityController.instance.AddMisi(mission);
 	}
 
@@ -220,6 +260,8 @@ public class ColyseusRoomMessage
 				GameObject entity = GameObject.Find(data.id_object);
 				DataSatuan dataEntity = entity.GetComponent<DataSatuan>();
 				dataEntity.ecm_activated = data.ecm_activated;
+
+				Debug.Log(dataEntity + ": mengaktifkan ECM");
 			}
 			catch (Exception e)
 			{
@@ -235,9 +277,11 @@ public class ColyseusRoomMessage
 			DataSatuan dataEntity = entity.GetComponent<DataSatuan>();
 
 			dataEntity.armor = float.Parse(data.armor);
+			Debug.Log(dataEntity.id_entity + ": sisa armor " + dataEntity.armor);
 
 			if (dataEntity.armor <= 0)
 			{
+				Debug.Log(dataEntity.id_entity + ": mati");
 				EntityController.instance.RefreshRadar();
 			}
 		});

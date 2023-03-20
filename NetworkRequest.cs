@@ -10,7 +10,7 @@ namespace UnityTest.Network
         // --- FUNGSI SEND REQUEST "POST" ---
         public static async Task<(string data, UnityWebRequest.Result request)> PostRequest(string uri, WWWForm form = null, bool consoleDebug = false, string requestHeaderName = null, string requestHeaderValue = null)
         {
-            Debug.Log(uri);
+            //Debug.Log(uri);
             UnityWebRequest www = UnityWebRequest.Post(uri, form);
             www.SetRequestHeader(requestHeaderName != null ? requestHeaderName : "Accept", requestHeaderValue != null ? requestHeaderValue : "application/json");
 

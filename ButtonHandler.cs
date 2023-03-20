@@ -10,10 +10,17 @@ public class ButtonHandler : MonoBehaviour
         if (TimeController.instance.isPlaying)
         {
             TimeController.instance.isPlaying = false;
+            ColyseusController.instance.SetMedia(new Dictionary<string, object> {
+                ["media"] = "pause"
+            });
         }
         else
         {
             TimeController.instance.isPlaying = true;
+            ColyseusController.instance.SetMedia(new Dictionary<string, object>
+            {
+                ["media"] = "play"
+            });
         }
     }
 }

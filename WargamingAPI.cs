@@ -28,7 +28,7 @@ namespace Wargaming.Core.Network
                     break;
             }
 
-            var result = await NetworkRequest.GetRequest("http://192.168.10.245/eppkm/public/api/" + grup + "?id=" + ID);
+            var result = await NetworkRequest.GetRequest("http://localhost/eppkm/public/api/" + grup + "?id=" + ID);
 
             if (result.data == null) return null;
             return result.data;
@@ -36,7 +36,7 @@ namespace Wargaming.Core.Network
 
         public static async Task<string> GetSkenarioAktif()
         {
-            var result = await NetworkRequest.PostRequest("http://192.168.10.245/eppkm/public/api/getSkenarioAktif", null, enableDebug);
+            var result = await NetworkRequest.PostRequest("http://localhost/eppkm/public/api/getSkenarioAktif", null, enableDebug);
 
             if (result.data != null)
             {
@@ -61,7 +61,7 @@ namespace Wargaming.Core.Network
         {
             WWWForm form = new WWWForm();
             form.AddField("status", "layer_peta_layer_get_scenario_aktif");
-            var result = await NetworkRequest.PostRequest("http://192.168.10.245/eppkm_simulasi/docs/source/source_get.php", form, enableDebug);
+            var result = await NetworkRequest.PostRequest("http://localhost/eppkm_simulasi/docs/source/source_get.php", form, enableDebug);
 
             if (result.data != null)
             {
@@ -75,12 +75,13 @@ namespace Wargaming.Core.Network
         {
             WWWForm form = new WWWForm();
 
-            var result = await NetworkRequest.PostRequest("http://192.168.10.245/eppkm/public/api/get/cb/best_rev", form, enableDebug);
+            var result = await NetworkRequest.PostRequest("http://localhost/eppkm/public/api/get/cb/best_rev", form, enableDebug);
 
             if (result.data != null)
             {
                 try
                 {
+                    Debug.Log("Mulai load entity");
                     var cbTerbaik = CBTerbaikHelper.FromJson(result.data);
 
                     if (cbTerbaik.Length > 1)
@@ -90,8 +91,15 @@ namespace Wargaming.Core.Network
                             await EntityController.instance.LoadEntityFromCB(item.id_user, item.id_kogas, SkenarioAktif.ID_SKENARIO, item.nama_document, 1);
                         }
 
+                        foreach (CBTerbaikHelper item in cbTerbaik)
+                        {
+                            if (item.tipe_cb == "CB Musuh") new CBMusuh(item);
+                            await EntityController.instance.LoadMisiFromCB(item.id_user, item.id_kogas, SkenarioAktif.ID_SKENARIO, item.nama_document, 1);
+                        }
+
                     EntityController.instance.SetRadarScript();
                     EntityController.instance.RefreshRadar();
+                    Debug.Log("Selesai load entity");
 
                     return "done";
 
@@ -116,7 +124,7 @@ namespace Wargaming.Core.Network
             form.AddField("skenario", id_scenario.Value.ToString());
             form.AddField("type", id_kogas == 0 ? "menu" : "menu_cb");
 
-            var result = await NetworkRequest.PostRequest("http://192.168.10.245/eppkm_simulasi/docs/source/source_get.php", form, enableDebug);
+            var result = await NetworkRequest.PostRequest("http://localhost/eppkm_simulasi/docs/source/source_get.php", form, enableDebug);
 
             if (result.data == null) return null;
 
