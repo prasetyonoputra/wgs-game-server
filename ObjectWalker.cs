@@ -12,7 +12,7 @@ public class ObjectWalker : MonoBehaviour
     private DateTimeOffset waktuMulai;
     private Vector2 posisiSekarang, posisiTujuan, posisiSebelum;
     private double heading, distance;
-    private int statusMisi = 0, _statusMisi = 0;
+    public int statusMisi = 0, _statusMisi = 0;
     private string idMisi;
 
     void Update()
@@ -51,7 +51,7 @@ public class ObjectWalker : MonoBehaviour
                         int index = entityData.jalurMisi.FindIndex(x => x.GetComponent<DataMisi>().id_mission == idMisi);
                         if (index == -1)
                         {
-                            Debug.Log(misiData.jenis);
+                            Debug.Log("Misi selesai");
                             if (misiData.jenis == "ranjauPergerakan")
                             {
                                 ColyseusController.instance.SendMisiRanjau(entityData.id_entity, misiData.missionDefault);
@@ -60,8 +60,6 @@ public class ObjectWalker : MonoBehaviour
                             {
                                 GameObject entityInduk = GameObject.Find(misiData.data_properties.id_tujuan);
                                 DataSatuan entityIndukData = entityInduk.GetComponent<DataSatuan>();
-
-                                Debug.Log(misiData.id_object);
 
                                 GameObject entityEmbarkasi = GameObject.Find(misiData.id_object);
                                 DataSatuan entityDataEmbarkasi = entityEmbarkasi.GetComponent<DataSatuan>();
@@ -75,15 +73,12 @@ public class ObjectWalker : MonoBehaviour
                                 ColyseusController.instance.SetOpacityObject(misiData.id_object, entityDataEmbarkasi.opacity);
                                 ColyseusController.instance.SendListEmbarkasi(misiData.data_properties.id_tujuan, entityIndukData.listEmbarkasi);
 
-                                entityEmbarkasi.SetActive(false);
-
                                 Debug.Log(entityEmbarkasi.name + ": melakukan embarkasi ke " + entityInduk.name);
                             }
                             else if (misiData.jenis == "debarkasi")
                             {
                                 GameObject entityDebarkasi = GameObject.Find(misiData.id_object);
                                 DataSatuan entityData = entityDebarkasi.GetComponent<DataSatuan>();
-                                entityDebarkasi.SetActive(true);
 
                                 if (misiData.data_properties.tools == "lifeboat")
                                 {
@@ -107,7 +102,7 @@ public class ObjectWalker : MonoBehaviour
             }
         }
 
-        if (statusMisi != _statusMisi)
+        if (statusMisi != _statusMisi && statusMisi != 0)
         {
             if (statusMisi == 1)
             {
@@ -119,6 +114,7 @@ public class ObjectWalker : MonoBehaviour
 
                     GameObject entityDebarkasi = GameObject.Find(misiData.id_object);
                     DataSatuan entityDataDebarkasi = entityDebarkasi.GetComponent<DataSatuan>();
+                    entityDebarkasi.transform.position = entityInduk.transform.position;
 
                     if (misiData.data_properties.tools == "lifeboat")
                     {
@@ -137,15 +133,17 @@ public class ObjectWalker : MonoBehaviour
                     Debug.Log(entityDebarkasi.name + ": melakukan debarkasi dari " + entityInduk.name);
                 }
 
+                ColyseusController.instance.SetStatusMisi(idMisi, statusMisi, entityData.id_entity);
                 Debug.Log(entityData.id_entity + ": bergerak!");
             }
             else if (statusMisi == 2)
             {
+                ColyseusController.instance.SetStatusMisi(idMisi, statusMisi, entityData.id_entity);
                 Debug.Log(entityData.id_entity + ": berhenti!");
+                statusMisi = 0;
             }
 
             _statusMisi = statusMisi;
-            ColyseusController.instance.SetStatusMisi(idMisi, statusMisi, entityData.id_entity);
         }
     }
 

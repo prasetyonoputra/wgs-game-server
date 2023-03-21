@@ -229,13 +229,17 @@ public class ColyseusState
 
 	public async void OnStateMissionAdd(string key, Mission mission)
 	{
-		Debug.Log("Ada tambah misi");
 		await EntityController.instance.AddMisi(mission);
 	}
 
 	public void OnStateMissionRemove(string key, Mission mission)
 	{
 		EntityController.instance.RemoveMisi(mission);
+	}
+
+	public void OnStateMissionChange(string key, Mission mission)
+	{
+		Debug.Log("onMissionChange");
 	}
 }
 
@@ -249,8 +253,7 @@ public class ColyseusRoomMessage
 
 		room.OnMessage<Mission>("ubah_misi_unity", (mission) =>
 		{
-			Debug.Log("Ada rubah misi");
-			//_ = EntityController.instance.editMisi(mission);
+			_ = EntityController.instance.EditMisi(mission);
 		});
 
 		room.OnMessage<DataECM>("ecmToUnity", (data) =>

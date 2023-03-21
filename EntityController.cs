@@ -399,7 +399,7 @@ public class EntityController : MonoBehaviour
 
     private async Task SpawnMisiSatuan(MisiSatuan mission)
     {
-        Debug.Log("Spawn misi" + mission.id_object);
+        Debug.Log("Spawn misi " + mission.id_object);
         List<JalurMisi> jalur = mission.data_properties.jalur;
 
         try
@@ -456,20 +456,20 @@ public class EntityController : MonoBehaviour
                 ["jenis"] = mission.jenis,
                 ["id_user"] = mission.id_user,
                 ["tgl_mulai"] = mission.tgl_mulai,
-                ["id_object"] = mission.tgl_mulai,
+                ["id_object"] = mission.id_object,
                 ["properties"] = MisiSatuan.getString(mission.data_properties),
                 ["status"] = 0,
                 ["isSelected"] = false,
                 ["used"] = false
             });
+
+            Debug.Log(mission.id_mission + " spawned");
         }
         catch (Exception)
         {
             Debug.LogWarning(mission.id_mission + " tidak memiliki object");
             Destroy(GameObject.Find(mission.id_mission));
         }
-
-        Debug.Log(mission.id_object + " spawned");
     }
 
     private void SpawnMisiSatuanFromColyseus(MisiSatuan mission)
@@ -513,6 +513,7 @@ public class EntityController : MonoBehaviour
             }
 
             dataTarget.jalurMisi = dataTarget.jalurMisi.OrderBy(x => Convert.ToDateTime(x.GetComponent<DataMisi>().tgl_mulai)).ToList();
+            Debug.Log(mission.data_properties.kecepatan);
             dataTarget.speed = float.Parse(mission.data_properties.kecepatan, CultureInfo.InvariantCulture.NumberFormat) / 100;
 
             if (targetObject.GetComponent<ObjectWalker>())
@@ -529,29 +530,54 @@ public class EntityController : MonoBehaviour
             Debug.LogWarning(mission.id_mission + " tidak memiliki object");
             Destroy(GameObject.Find(mission.id_mission));
         }
-
-        Debug.Log(mission.id_object + " spawned");
     }
 
     public async Task<bool> AddMisi(Mission misi)
     {
         if (misi.jenis == "pergerakan")
         {
-            return await SetObjectPergerakan(misi);
+            return await SetMisiPergerakan(misi);
         }
         else if (misi.jenis == "embarkasi")
         {
-            return await SetObjectEmbarkasi(misi);
+            return await SetMisiEmbarkasi(misi);
         }
-        //else if (misi.jenis == "debarkasi")
-        //{
-        //    Debug.Log("Tambah Misi Debarkasi");
-        //    return await SetObjectDebarkasiAsync(misi);
-        //}
+        else if (misi.jenis == "debarkasi")
+        {
+            Debug.Log("Tambah Misi Debarkasi");
+            return await SetMisiDebarkasi(misi);
+        }
         else if (misi.jenis == "ranjauPergerakan")
         {
             Debug.Log("Tambah Misi Ranjau pergerakan");
-            return await SetObjectRanjauPergerakan(misi);
+            return await SetMisiRanjauPergerakan(misi);
+        }
+        //else if (misi.jenis == "penyapuanRanjau")
+        //{
+        //    Debug.Log("Tambah Misi Penyapuan Ranjau");
+        //    return await SetObjectPenyapuanRanjauAsync(misi);
+        //}
+
+        return true;
+    }
+
+    public async Task<bool> EditMisi(Mission misi)
+    {
+        if (misi.jenis == "pergerakan")
+        {
+            return await EditMisiPergerakan(misi);
+        }
+        else if (misi.jenis == "embarkasi")
+        {
+            return await EditMisiEmbarkasi(misi);
+        }
+        else if (misi.jenis == "debarkasi")
+        {
+            return await EditMisiDebarkasi(misi);
+        }
+        else if (misi.jenis == "ranjauPergerakan")
+        {
+            return await EditMisiRanjauPergerakan(misi);
         }
         //else if (misi.jenis == "penyapuanRanjau")
         //{
@@ -585,7 +611,7 @@ public class EntityController : MonoBehaviour
         return true;
     }
 
-    public async Task<bool> SetObjectPergerakan(Mission misi)
+    public async Task<bool> SetMisiPergerakan(Mission misi)
     {
         try
         {
@@ -618,7 +644,41 @@ public class EntityController : MonoBehaviour
         return true;
     }
 
-    public async Task<bool> SetObjectRanjauPergerakan(Mission misi)
+    public async Task<bool> EditMisiPergerakan(Mission misi)
+    {
+        try
+        {
+            var mission = MisiSatuan.FromJson(JsonConvert.SerializeObject(misi));
+
+            if (mission == null) return false;
+
+            if (mission.data_properties == null) return false;
+
+            if (mission.data_properties.jalur == null) return false;
+
+            RemoveMisi(misi);
+            SpawnMisiSatuanFromColyseus(mission);
+
+            Dictionary<string, object> propMinimap = new();
+            propMinimap["id_point"] = mission.id_object;
+            propMinimap["id_misi"] = mission.id;
+            propMinimap["jalur"] = mission.data_properties.jalur;
+            propMinimap["speed"] = mission.data_properties.kecepatan;
+            propMinimap["removeOnEnd"] = true;
+            await ColyseusController.instance.CreateSetJalurMiniMap(propMinimap);
+
+            Debug.Log(misi.id_object + ": merubah misi pergerakan");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(e);
+            Debug.LogWarning("Ada misi tidak valid");
+        }
+
+        return true;
+    }
+
+    public async Task<bool> SetMisiRanjauPergerakan(Mission misi)
     {
         try
         {
@@ -651,7 +711,41 @@ public class EntityController : MonoBehaviour
         return true;
     }
 
-    public async Task<bool> SetObjectEmbarkasi(Mission misi)
+    public async Task<bool> EditMisiRanjauPergerakan(Mission misi)
+    {
+        try
+        {
+            var mission = MisiSatuan.FromJson(JsonConvert.SerializeObject(misi));
+
+            if (mission == null) return false;
+
+            if (mission.data_properties == null) return false;
+
+            if (mission.data_properties.jalur == null) return false;
+
+            RemoveMisi(misi);
+            SpawnMisiSatuanFromColyseus(mission);
+
+            Dictionary<string, object> propMinimap = new();
+            propMinimap["id_point"] = mission.id_object;
+            propMinimap["id_misi"] = mission.id;
+            propMinimap["jalur"] = mission.data_properties.jalur;
+            propMinimap["speed"] = mission.data_properties.kecepatan;
+            propMinimap["removeOnEnd"] = true;
+            await ColyseusController.instance.CreateSetJalurMiniMap(propMinimap);
+
+            Debug.Log(misi.id_object + ": merubah misi penyapuan ranjau");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(e);
+            Debug.LogWarning("Ada misi tidak valid");
+        }
+
+        return true;
+    }
+
+    public async Task<bool> SetMisiEmbarkasi(Mission misi)
     {
         try
         {
@@ -674,7 +768,111 @@ public class EntityController : MonoBehaviour
             propMinimap["removeOnEnd"] = true;
             await ColyseusController.instance.CreateSetJalurMiniMap(propMinimap);
 
-            Debug.Log(misi.id_object + ": membuat embarkasi");
+            Debug.Log(misi.id_object + ": membuat misi embarkasi");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(e);
+            Debug.LogWarning("Ada misi tidak valid");
+        }
+
+        return true;
+    }
+
+    public async Task<bool> EditMisiEmbarkasi(Mission misi)
+    {
+        try
+        {
+            var mission = MisiSatuan.FromJson(JsonConvert.SerializeObject(misi));
+
+            if (mission == null) return false;
+
+            if (mission.data_properties == null) return false;
+
+            if (mission.data_properties.koordTujuan == null) return false;
+            mission.data_properties.jalur = mission.data_properties.koordTujuan;
+
+            RemoveMisi(misi);
+            SpawnMisiSatuanFromColyseus(mission);
+
+            Dictionary<string, object> propMinimap = new();
+            propMinimap["id_point"] = mission.id_object;
+            propMinimap["id_misi"] = mission.id;
+            propMinimap["jalur"] = mission.data_properties.jalur;
+            propMinimap["speed"] = mission.data_properties.kecepatan;
+            propMinimap["removeOnEnd"] = true;
+            await ColyseusController.instance.CreateSetJalurMiniMap(propMinimap);
+
+            Debug.Log(misi.id_object + ": merubah misi embarkasi");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(e);
+            Debug.LogWarning("Ada misi tidak valid");
+        }
+
+        return true;
+    }
+
+    public async Task<bool> SetMisiDebarkasi(Mission misi)
+    {
+        try
+        {
+            var mission = MisiSatuan.FromJson(JsonConvert.SerializeObject(misi));
+
+            if (mission == null) return false;
+
+            if (mission.data_properties == null) return false;
+
+            if (mission.data_properties.koordTujuan == null) return false;
+            mission.data_properties.jalur = mission.data_properties.koordTujuan;
+
+            SpawnMisiSatuanFromColyseus(mission);
+
+            Dictionary<string, object> propMinimap = new();
+            propMinimap["id_point"] = mission.id_object;
+            propMinimap["id_misi"] = mission.id;
+            propMinimap["jalur"] = mission.data_properties.jalur;
+            propMinimap["speed"] = mission.data_properties.kecepatan;
+            propMinimap["removeOnEnd"] = true;
+            await ColyseusController.instance.CreateSetJalurMiniMap(propMinimap);
+
+            Debug.Log(misi.id_object + ": membuat misi debarkasi");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(e);
+            Debug.LogWarning("Ada misi tidak valid");
+        }
+
+        return true;
+    }
+
+    public async Task<bool> EditMisiDebarkasi(Mission misi)
+    {
+        try
+        {
+            var mission = MisiSatuan.FromJson(JsonConvert.SerializeObject(misi));
+
+            if (mission == null) return false;
+
+            if (mission.data_properties == null) return false;
+
+            if (mission.data_properties.koordTujuan == null) return false;
+            mission.data_properties.jalur = mission.data_properties.koordTujuan;
+
+            RemoveMisi(misi);
+            SpawnMisiSatuanFromColyseus(mission);
+
+            Dictionary<string, object> propMinimap = new();
+            propMinimap["id_point"] = mission.id_object;
+            propMinimap["id_misi"] = mission.id;
+            propMinimap["jalur"] = mission.data_properties.jalur;
+            propMinimap["speed"] = mission.data_properties.kecepatan;
+            propMinimap["removeOnEnd"] = true;
+            await ColyseusController.instance.CreateSetJalurMiniMap(propMinimap);
+
+            Debug.Log(misi.id_object + ": merubah misi debarkasi");
         }
         catch (Exception e)
         {
@@ -722,35 +920,48 @@ public class EntityController : MonoBehaviour
 
     public void SetRadarScript()
     {
-        Debug.Log("Setup radar!");
         foreach (string id_satuan in listSatuan)
         {
-            GameObject satuan = GameObject.Find(id_satuan);
-            GameObject radarChild = satuan.transform.GetChild(1).gameObject;
-            GameObject jarakPandangChild = satuan.transform.GetChild(2).gameObject;
+            try
+            {
+                GameObject satuan = GameObject.Find(id_satuan);
+                GameObject radarChild = satuan.transform.GetChild(1).gameObject;
+                GameObject jarakPandangChild = satuan.transform.GetChild(2).gameObject;
 
-            if (satuan.GetComponent<RadarSatuanScript>())
-            {
-                // nothing
+                if (satuan.GetComponent<RadarSatuanScript>())
+                {
+                    // nothing
+                }
+                else
+                {
+                    radarChild.AddComponent<RadarSatuanScript>();
+                    jarakPandangChild.AddComponent<RadarSatuanScript>();
+                }
             }
-            else
+            catch (Exception)
             {
-                radarChild.AddComponent<RadarSatuanScript>();
-                jarakPandangChild.AddComponent<RadarSatuanScript>();
+                Debug.LogWarning(id_satuan + ": radar rusak!");
             }
         }
 
         foreach (string id_radar in listRadar)
         {
-            GameObject radar = GameObject.Find(id_radar);
+            try
+            {
+                GameObject radar = GameObject.Find(id_radar);
 
-            if (radar.GetComponent<RadarSatuanScript>())
-            {
-                // nothing
+                if (radar.GetComponent<RadarSatuanScript>())
+                {
+                    // nothing
+                }
+                else
+                {
+                    radar.AddComponent<RadarScript>();
+                }
             }
-            else
+            catch (Exception)
             {
-                radar.AddComponent<RadarScript>();
+                Debug.LogWarning(id_radar + ": radar rusak!");
             }
         }
     }
@@ -759,22 +970,37 @@ public class EntityController : MonoBehaviour
     {
         foreach (string id_satuan in listSatuan)
         {
-            GameObject satuan = GameObject.Find(id_satuan);
-
-            for (int i = 0; i < 2; i++)
+            try
             {
-                satuan.transform.GetChild(1).gameObject.SetActive(!satuan.transform.GetChild(1).gameObject.activeSelf);
-                satuan.transform.GetChild(2).gameObject.SetActive(!satuan.transform.GetChild(2).gameObject.activeSelf);
+                GameObject satuan = GameObject.Find(id_satuan);
+
+                for (int i = 0; i < 2; i++)
+                {
+                    satuan.transform.GetChild(1).gameObject.SetActive(!satuan.transform.GetChild(1).gameObject.activeSelf);
+                    satuan.transform.GetChild(2).gameObject.SetActive(!satuan.transform.GetChild(2).gameObject.activeSelf);
+                }
             }
+            catch (Exception)
+            {
+                Debug.LogWarning(id_satuan + ": tidak bisa refresh!");
+            }
+            
         }
 
         foreach (string id_radar in listRadar)
         {
-            GameObject radar = GameObject.Find(id_radar);
-
-            for (int i = 0; i < 2; i++)
+            try
             {
-                radar.SetActive(!radar.activeSelf);
+                GameObject radar = GameObject.Find(id_radar);
+
+                for (int i = 0; i < 2; i++)
+                {
+                    radar.SetActive(!radar.activeSelf);
+                }
+            }
+            catch (Exception)
+            {
+                Debug.LogWarning(id_radar + ": tidak bisa refresh!");
             }
         }
     }
