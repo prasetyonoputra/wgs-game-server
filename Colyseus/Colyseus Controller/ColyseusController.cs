@@ -293,6 +293,7 @@ public class ColyseusRoomMessage
 				dataEntity.ecm_activated = data.ecm_activated;
 
 				Debug.Log(dataEntity + ": mengaktifkan ECM");
+				EntityController.instance.RefreshRadar();
 			}
 			catch (Exception e)
 			{

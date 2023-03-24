@@ -258,7 +258,7 @@ public class EntityController : MonoBehaviour
         satuan.detector = new Detector(satuan.radar, satuan.sonar);
 
         DataSatuan entityData = entitySatuan.AddComponent<DataSatuan>();
-        entityData.speed = (float)satuan.data_info.kecepatan_satuan / 100;
+        entityData.speed = (float)satuan.data_info.kecepatan_satuan;
         entityData.id_entity = satuan.id_satuan;
         entityData.detector = satuan.detector;
         entityData.armor = satuan.data_info.armor;
@@ -487,6 +487,7 @@ public class EntityController : MonoBehaviour
                 dataMisi.data_properties = mission.data_properties;
                 dataMisi.missionDefault = mission.missionDefault;
                 dataMisi.id_object = mission.id_object;
+                dataMisi.speed = float.Parse(mission.data_properties.kecepatan, CultureInfo.InvariantCulture.NumberFormat);
 
                 dataTarget.jalurMisi.Add(objectjalur);
 
@@ -494,7 +495,6 @@ public class EntityController : MonoBehaviour
             }
 
             dataTarget.jalurMisi = dataTarget.jalurMisi.OrderBy(x => Convert.ToDateTime(x.GetComponent<DataMisi>().tgl_mulai)).ToList();
-            dataTarget.speed = float.Parse(mission.data_properties.kecepatan, CultureInfo.InvariantCulture.NumberFormat) / 100;
 
             if (targetObject.GetComponent<ObjectWalker>())
             {
@@ -562,6 +562,7 @@ public class EntityController : MonoBehaviour
                 dataMisi.data_properties = mission.data_properties;
                 dataMisi.missionDefault = mission.missionDefault;
                 dataMisi.id_object = mission.id_object;
+                dataMisi.speed = float.Parse(mission.data_properties.kecepatan, CultureInfo.InvariantCulture.NumberFormat);
 
                 dataTarget.jalurMisi.Add(objectjalur);
 
@@ -569,8 +570,6 @@ public class EntityController : MonoBehaviour
             }
 
             dataTarget.jalurMisi = dataTarget.jalurMisi.OrderBy(x => Convert.ToDateTime(x.GetComponent<DataMisi>().tgl_mulai)).ToList();
-            Debug.Log(mission.data_properties.kecepatan);
-            dataTarget.speed = float.Parse(mission.data_properties.kecepatan, CultureInfo.InvariantCulture.NumberFormat) / 100;
 
             if (targetObject.GetComponent<ObjectWalker>())
             {

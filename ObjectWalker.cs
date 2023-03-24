@@ -14,17 +14,18 @@ public class ObjectWalker : MonoBehaviour
     private double heading, distance;
     public int statusMisi = 0, _statusMisi = 0;
     private string idMisi;
+    private float step;
 
     void Update()
     {
         entityData = this.GetComponent<DataSatuan>();
-        float step = entityData.speed * Time.deltaTime * TimeController.instance.percepatan;
-
         if (waypointIndex < entityData.jalurMisi.Count)
         {
             misiData = entityData.jalurMisi[waypointIndex].GetComponent<DataMisi>();
             waktuMulaiMisi = Convert.ToDateTime(misiData.tgl_mulai);
             waktuMulai = waktuMulaiMisi;
+
+            step = (float)(((misiData.speed / 1000) * TimeController.instance.percepatan) * Time.deltaTime);
 
             if (waktuMulai.ToUnixTimeMilliseconds() <= TimeController.instance.getDateTimeOffset().ToUnixTimeMilliseconds())
             {

@@ -41,11 +41,11 @@ public class TimeController : MonoBehaviour
     {
         if (isPlaying)
         {
-            elapsed += Time.deltaTime * percepatan;
+            elapsed += Time.deltaTime;
             if (elapsed >= 1f)
             {
-                elapsed = elapsed % 1f;
-                waktuSekarang = waktuSekarang.AddSeconds(1);
+                elapsed %= 1f;
+                waktuSekarang = waktuSekarang.AddSeconds(1 * percepatan);
                 //Debug.Log(waktuSekarang.ToString());
 
                 ColyseusController.instance.SetTime(waktuSekarang.ToString());
