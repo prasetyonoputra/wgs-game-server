@@ -24,19 +24,16 @@ public class RadarSatuanScript : MonoBehaviour
                             {
                                 if (id == entity.id_entity)
                                 {
-                                    Debug.Log("Kesini 1");
                                     RadarFunction(entityMusuh, entity, "ecm");
                                 }
                                 else
                                 {
-                                    Debug.Log("Kesini 2");
                                     RadarFunction(entityMusuh, entity, "show");
                                 }
                             }
                         }
                         else
                         {
-                            Debug.Log("Langsung kesini");
                             RadarFunction(entityMusuh, entity, "show");
                         }
                     }
