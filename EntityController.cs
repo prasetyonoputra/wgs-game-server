@@ -44,9 +44,9 @@ public class EntityController : MonoBehaviour
 
         await LoadEntitySatuan(JArrayExtended.setJArrayResult(plotting, 0));
         await LoadEntityRadar(JArrayExtended.setJArrayResult(plotting, 7));
-        //LoadEntityTool(JArrayExtended.setJArrayResult(plotting, 10));
+        await LoadEntityTool(JArrayExtended.setJArrayResult(plotting, 10));
         await LoadEntityObstacle(JArrayExtended.setJArrayResult(plotting, 3));
-        //await LoadEntityFormasi(JArrayExtended.setJArrayResult(plotting, 9));
+        await LoadEntityFormasi(JArrayExtended.setJArrayResult(plotting, 9));
         await LoadEntityText(JArrayExtended.setJArrayResult(plotting, 11));
     }
 
@@ -84,6 +84,19 @@ public class EntityController : MonoBehaviour
         return true;
     }
 
+    public async Task<bool> LoadEntityTool(JArray arrayTools)
+    {
+
+        if (arrayTools == null) return false;
+        if (arrayTools.Count == 0) return false;
+
+        Debug.Log("Spawn tools");
+        await ColyseusController.instance.SendListTool(arrayTools);
+        Debug.Log("Tools spawned");
+
+        return true;
+    }
+
     public async Task<bool> LoadMisiSatuan(JArray data)
     {
         if (!JArrayExtended.checkingJArrayData(data)) return false;
@@ -116,9 +129,51 @@ public class EntityController : MonoBehaviour
         if (arrayText == null) return false;
         if (arrayText.Count == 0) return false;
 
+        Debug.Log("Spawn text");
         await ColyseusController.instance.SendListText(arrayText);
+        Debug.Log("Text spawned");
 
         return true;
+    }
+
+    public async Task<bool> LoadEntityFormasi(JArray arrayFormasi)
+    {
+        if (arrayFormasi == null) return false;
+        if (arrayFormasi.Count == 0) return false;
+
+
+        for (int i = 0; i < arrayFormasi.Count; i++)
+        {
+            var formasi = EntityFormasi.FromJson(arrayFormasi[i].ToString());
+            await SpawnFormasi(formasi);
+        }
+
+        return true;
+    }
+
+    public async Task SpawnFormasi(EntityFormasi formasi)
+    {
+        Debug.Log("Spawn formasi " + formasi.id);
+        InfoFormasi info = formasi.infoFormasi;
+        var members = info.satuan_formasi;
+
+        if (members.Length > 0)
+        {
+            var satuJar = info.satuan_formasi[0].satuan;
+
+            Dictionary<string, object> data = new Dictionary<string, object> { };
+            data["id_formasi"] = formasi.id;
+            data["arah"] = info?.arah != null ? info.arah : 0;
+            data["jenis"] = formasi.jenis_formasi;
+            data["judul"] = info.nama_formasi;
+            data["nama"] = formasi.nama;
+            data["satuan"] = satuJar;
+            data["member"] = JsonConvert.SerializeObject(members);
+            data["defaultData"] = EntityFormasi.ToString(formasi);
+
+            await ColyseusController.instance.CreateFormasiToColyseus(data);
+            Debug.Log(formasi.id + " spawned");
+        }
     }
 
     public async Task SpawnObstacle(EntityObstacle obstacle)

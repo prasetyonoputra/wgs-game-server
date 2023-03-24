@@ -199,6 +199,16 @@ public class ColyseusController : MonoBehaviour
 			["isDestroy"] = true
 		});
 	}
+
+	public async Task SendListTool(JArray dataListTools)
+	{
+		await room.Send("setListTools", dataListTools.ToString());
+	}
+
+	public async Task CreateFormasiToColyseus(Dictionary<string, object> dataFormasi)
+	{
+		await room.Send("tambah_formasi", dataFormasi);
+	}
 }
 
 public class ColyseusState
