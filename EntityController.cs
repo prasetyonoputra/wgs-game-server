@@ -211,6 +211,7 @@ public class EntityController : MonoBehaviour
         entityData.kebalRanjau = false;
         entityData.infoSatuan = satuan.data_info;
         entityData.id_user = satuan.id_user;
+        entityData.jenis = satuan.jenis;
 
         GameObject radarChild = entitySatuan.transform.GetChild(1).gameObject;
         radarChild.GetComponent<CircleCollider2D>().radius = getRadiusRadarEntity("utama", satuan.tipe_tni, satuan.height) / 100;
@@ -544,19 +545,16 @@ public class EntityController : MonoBehaviour
         }
         else if (misi.jenis == "debarkasi")
         {
-            Debug.Log("Tambah Misi Debarkasi");
             return await SetMisiDebarkasi(misi);
         }
         else if (misi.jenis == "ranjauPergerakan")
         {
-            Debug.Log("Tambah Misi Ranjau pergerakan");
             return await SetMisiRanjauPergerakan(misi);
         }
-        //else if (misi.jenis == "penyapuanRanjau")
-        //{
-        //    Debug.Log("Tambah Misi Penyapuan Ranjau");
-        //    return await SetObjectPenyapuanRanjauAsync(misi);
-        //}
+        else if (misi.jenis == "penyapuanRanjau")
+        {
+            return await SetMisiPenyapuanRanjau(misi);
+        }
 
         return true;
     }
@@ -579,11 +577,11 @@ public class EntityController : MonoBehaviour
         {
             return await EditMisiRanjauPergerakan(misi);
         }
-        //else if (misi.jenis == "penyapuanRanjau")
-        //{
-        //    Debug.Log("Tambah Misi Penyapuan Ranjau");
-        //    return await SetObjectPenyapuanRanjauAsync(misi);
-        //}
+        else if (misi.jenis == "penyapuanRanjau")
+        {
+            Debug.Log("Tambah Misi Penyapuan Ranjau");
+            return await EditMisiPenyapuanRanjau(misi);
+        }
 
         return true;
     }
@@ -711,6 +709,41 @@ public class EntityController : MonoBehaviour
         return true;
     }
 
+    public async Task<bool> SetMisiPenyapuanRanjau(Mission misi)
+    {
+        try
+        {
+            var mission = MisiSatuan.FromJson(JsonConvert.SerializeObject(misi));
+
+            if (mission == null) return false;
+
+            if (mission.data_properties == null) return false;
+
+            if (mission.data_properties.jalur == null) return false;
+
+            SpawnMisiSatuanFromColyseus(mission);
+            DataSatuan dataSatuan = GameObject.Find(mission.id_object).GetComponent<DataSatuan>();
+            dataSatuan.kebalRanjau = true;
+
+            Dictionary<string, object> propMinimap = new();
+            propMinimap["id_point"] = mission.id_object;
+            propMinimap["id_misi"] = mission.id;
+            propMinimap["jalur"] = mission.data_properties.jalur;
+            propMinimap["speed"] = mission.data_properties.kecepatan;
+            propMinimap["removeOnEnd"] = true;
+            await ColyseusController.instance.CreateSetJalurMiniMap(propMinimap);
+
+            Debug.Log(misi.id_object + ": membuat misi penyapuan ranjau");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(e);
+            Debug.LogWarning("Ada misi tidak valid");
+        }
+
+        return true;
+    }
+
     public async Task<bool> EditMisiRanjauPergerakan(Mission misi)
     {
         try
@@ -725,6 +758,42 @@ public class EntityController : MonoBehaviour
 
             RemoveMisi(misi);
             SpawnMisiSatuanFromColyseus(mission);
+
+            Dictionary<string, object> propMinimap = new();
+            propMinimap["id_point"] = mission.id_object;
+            propMinimap["id_misi"] = mission.id;
+            propMinimap["jalur"] = mission.data_properties.jalur;
+            propMinimap["speed"] = mission.data_properties.kecepatan;
+            propMinimap["removeOnEnd"] = true;
+            await ColyseusController.instance.CreateSetJalurMiniMap(propMinimap);
+
+            Debug.Log(misi.id_object + ": merubah misi penyapuan ranjau");
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning(e);
+            Debug.LogWarning("Ada misi tidak valid");
+        }
+
+        return true;
+    }
+
+    public async Task<bool> EditMisiPenyapuanRanjau(Mission misi)
+    {
+        try
+        {
+            var mission = MisiSatuan.FromJson(JsonConvert.SerializeObject(misi));
+
+            if (mission == null) return false;
+
+            if (mission.data_properties == null) return false;
+
+            if (mission.data_properties.jalur == null) return false;
+
+            RemoveMisi(misi);
+            SpawnMisiSatuanFromColyseus(mission);
+            DataSatuan dataSatuan = GameObject.Find(mission.id_object).GetComponent<DataSatuan>();
+            dataSatuan.kebalRanjau = true;
 
             Dictionary<string, object> propMinimap = new();
             propMinimap["id_point"] = mission.id_object;

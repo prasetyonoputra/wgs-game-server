@@ -181,6 +181,24 @@ public class ColyseusController : MonoBehaviour
 			["iconNow"] = value
 		});
 	}
+
+	public async void SetArmor(string id_object, float armor)
+	{
+		await room.Send("setArmor", new Dictionary<string, object>
+		{
+			["id_object"] = id_object,
+			["armor"] = armor
+		});
+	}
+
+	public async void DestroyRanjau(string idObstacle)
+	{
+		await room.Send("destroy_ranjau", new Dictionary<string, object>
+		{
+			["id_object"] = idObstacle,
+			["isDestroy"] = true
+		});
+	}
 }
 
 public class ColyseusState

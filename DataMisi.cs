@@ -11,5 +11,6 @@ public class DataMisi : MonoBehaviour
     public string jenis;
     public string missionDefault;
     public string id_tujuan;
+    public double speed;
     public MisiSatuanProperties data_properties;
 }

@@ -87,6 +87,12 @@ public class ObjectWalker : MonoBehaviour
 
                                 ColyseusController.instance.SetOpacityObject(misiData.id_object, entityData.opacity);
                             }
+                            else if (misiData.jenis == "penyapuanRanjau")
+                            {
+                                GameObject entityDebarkasi = GameObject.Find(misiData.id_object);
+                                DataSatuan entityData = entityDebarkasi.GetComponent<DataSatuan>();
+                                entityData.kebalRanjau = false;
+                            }
 
                             Destroy(GameObject.Find(idMisi));
                             statusMisi = 2;

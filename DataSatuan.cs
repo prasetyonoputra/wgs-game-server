@@ -8,6 +8,7 @@ public class DataSatuan : MonoBehaviour
     public enum JenisSatuan { VEHICLE, SHIP, AIRCRAFT, INFANTRY }
     public string id_entity;
     public string id_user;
+    public string tipe_tni;
     public JenisSatuan jenis;
     public Detector detector;
     public List<GameObject> jalurMisi = new List<GameObject>();
