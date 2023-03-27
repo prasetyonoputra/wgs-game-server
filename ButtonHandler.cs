@@ -1,10 +1,25 @@
-using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
+using Wargaming.Core.Network;
 
 public class ButtonHandler : MonoBehaviour
 {
+    public GameObject stopButton, startButton;
+    public void StartSkenario()
+    {
+        Debug.Log("Start skenario");
+        _ = WargamingAPI.GetSkenarioAktif();
+        _ = WargamingAPI.GetAllCB();
+        _ = TimeController.instance.Init();
+        stopButton.SetActive(true);
+        this.gameObject.SetActive(false);
+    }
+
+    public void StopSkenario()
+    {
+        Application.Quit();
+    }
+
     public void PlayButton()
     {
         if (TimeController.instance.isPlaying)

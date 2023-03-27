@@ -18,21 +18,21 @@ public class ObjectWalker : MonoBehaviour
 
     void Update()
     {
-        entityData = this.GetComponent<DataSatuan>();
-        if (waypointIndex < entityData.jalurMisi.Count)
+        if (TimeController.instance.isPlaying)
         {
-            misiData = entityData.jalurMisi[waypointIndex].GetComponent<DataMisi>();
-            waktuMulaiMisi = Convert.ToDateTime(misiData.tgl_mulai);
-            waktuMulai = waktuMulaiMisi;
+            entityData = this.GetComponent<DataSatuan>();
 
-            step = (float)(((misiData.speed / 1000) * TimeController.instance.percepatan) * Time.deltaTime);
-
-            if (waktuMulai.ToUnixTimeMilliseconds() <= TimeController.instance.getDateTimeOffset().ToUnixTimeMilliseconds())
+            if (waypointIndex < entityData.jalurMisi.Count)
             {
-                if (TimeController.instance.isPlaying)
+                misiData = entityData.jalurMisi[waypointIndex].GetComponent<DataMisi>();
+                waktuMulaiMisi = Convert.ToDateTime(misiData.tgl_mulai);
+                waktuMulai = waktuMulaiMisi;
+
+                if (waktuMulai.ToUnixTimeMilliseconds() <= TimeController.instance.getDateTimeOffset().ToUnixTimeMilliseconds())
                 {
                     if (transform.position != entityData.jalurMisi[waypointIndex].transform.position)
                     {
+                        step = ((CalculateSpeed((float)misiData.speed, misiData.data_properties.type) / 1000) * TimeController.instance.percepatan) * Time.deltaTime;
                         idMisi = misiData.id_mission;
                         posisiSekarang = transform.position;
                         posisiTujuan = misiData.transform.position;
@@ -104,9 +104,13 @@ public class ObjectWalker : MonoBehaviour
                 }
                 else
                 {
-                    transform.position = Vector2.MoveTowards(transform.position, transform.position, step);
+                    statusMisi = 0;
                 }
             }
+        }
+        else
+        {
+            transform.position = Vector2.MoveTowards(transform.position, transform.position, step);
         }
 
         if (statusMisi != _statusMisi && statusMisi != 0)
@@ -185,5 +189,26 @@ public class ObjectWalker : MonoBehaviour
         }
 
         return dist;
+    }
+
+    static float CalculateSpeed(float speed, string type)
+    {
+        if (type == "kilometer")
+        {
+            return speed;
+        }
+        else if (type == "miles")
+        {
+            return speed * 1.609344f;
+        }
+        else if (type == "knot")
+        {
+            return speed * 1.852f;
+        }
+        else if (type == "mach")
+        {
+            return speed * 1062.16704f;
+        }
+        return speed;
     }
 }

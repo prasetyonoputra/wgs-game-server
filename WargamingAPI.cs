@@ -28,7 +28,7 @@ namespace Wargaming.Core.Network
                     break;
             }
 
-            var result = await NetworkRequest.GetRequest("http://localhost/eppkm/public/api/" + grup + "?id=" + ID);
+            var result = await NetworkRequest.GetRequest(EntityController.instance.configArray[0] + "/api/" + grup + "?id=" + ID);
 
             if (result.data == null) return null;
             return result.data;
@@ -36,7 +36,7 @@ namespace Wargaming.Core.Network
 
         public static async Task<string> GetSkenarioAktif()
         {
-            var result = await NetworkRequest.PostRequest("http://localhost/eppkm/public/api/getSkenarioAktif", null, enableDebug);
+            var result = await NetworkRequest.PostRequest(EntityController.instance.configArray[0] + "/api/getSkenarioAktif", null, enableDebug);
 
             if (result.data != null)
             {
@@ -61,7 +61,7 @@ namespace Wargaming.Core.Network
         {
             WWWForm form = new WWWForm();
             form.AddField("status", "layer_peta_layer_get_scenario_aktif");
-            var result = await NetworkRequest.PostRequest("http://localhost/eppkm_simulasi/docs/source/source_get.php", form, enableDebug);
+            var result = await NetworkRequest.PostRequest(EntityController.instance.configArray[1] + "/docs/source/source_get.php", form, enableDebug);
 
             if (result.data != null)
             {
@@ -75,7 +75,7 @@ namespace Wargaming.Core.Network
         {
             WWWForm form = new WWWForm();
 
-            var result = await NetworkRequest.PostRequest("http://localhost/eppkm/public/api/get/cb/best_rev", form, enableDebug);
+            var result = await NetworkRequest.PostRequest(EntityController.instance.configArray[0] + "/api/get/cb/best_rev", form, enableDebug);
 
             if (result.data != null)
             {
@@ -124,7 +124,7 @@ namespace Wargaming.Core.Network
             form.AddField("skenario", id_scenario.Value.ToString());
             form.AddField("type", id_kogas == 0 ? "menu" : "menu_cb");
 
-            var result = await NetworkRequest.PostRequest("http://localhost/eppkm_simulasi/docs/source/source_get.php", form, enableDebug);
+            var result = await NetworkRequest.PostRequest(EntityController.instance.configArray[1] + "/docs/source/source_get.php", form, enableDebug);
 
             if (result.data == null) return null;
 

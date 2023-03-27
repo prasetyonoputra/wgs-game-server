@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -16,6 +17,8 @@ public class EntityController : MonoBehaviour
     public static EntityController instance;
     public static List<string> listSatuan = new List<string>();
     public static List<string> listRadar = new List<string>();
+    public string[] configArray;
+    public static string fileName, filePath;
 
     public GameObject prefabSatuan;
     public GameObject prefabMisi;
@@ -31,6 +34,20 @@ public class EntityController : MonoBehaviour
         if (instance == null)
         {
             instance = this;
+            fileName = "config.txt";
+            
+            filePath = fileName;
+
+            #if UNITY_EDITOR
+                filePath = Application.dataPath + "/" + fileName;
+            #endif
+
+            configArray = File.ReadAllLines(filePath);
+
+            foreach (string line in configArray)
+            {
+                Debug.Log(line);
+            }
         }
         else
         {
@@ -649,7 +666,7 @@ public class EntityController : MonoBehaviour
 
         foreach (GameObject misiSatuan in listMisi)
         {
-            if (misiSatuan.GetComponent<DataMisi>().tgl_mulai != misi.tgl_mulai)
+            if (misiSatuan.GetComponent<DataMisi>().id_mission != misi.id)
             {
                 listMisiBaru.Add(misiSatuan);
             }

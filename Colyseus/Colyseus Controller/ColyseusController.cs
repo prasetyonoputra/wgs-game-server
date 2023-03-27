@@ -17,7 +17,6 @@ public class ColyseusController : MonoBehaviour
 	public static ColyseusController instance;
 	public static ColyseusState state;
 	internal int typeWGS = 1;
-	const string serviceColyseus = "ws://localhost";
 
 	private void Awake()
 	{
@@ -45,8 +44,8 @@ public class ColyseusController : MonoBehaviour
 
 	public async Task prepareRoomAsync()
 	{
-		client = new ColyseusClient(serviceColyseus + ":2567");
-		room = await client.JoinOrCreate<State>("wargaming");
+		client = new ColyseusClient(EntityController.instance.configArray[2]);
+		room = await client.Create<State>("wargaming");
 		state = new ColyseusState();
 
 		var _message = new ColyseusRoomMessage();
