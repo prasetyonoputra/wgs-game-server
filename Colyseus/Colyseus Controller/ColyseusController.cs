@@ -314,6 +314,7 @@ public class ColyseusRoomMessage
 			{
 				Debug.Log(dataEntity.id_entity + ": mati");
 				EntityController.instance.RefreshRadar();
+				dataEntity.jalurMisi.Clear();
 			}
 		});
 

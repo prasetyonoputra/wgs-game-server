@@ -59,6 +59,8 @@ public class EntityController : MonoBehaviour
     {
         var plotting = await WargamingAPI.loadDataCB(id_user, id_kogas, id_scenario, nama_document);
 
+        Debug.Log(plotting);
+
         await LoadEntitySatuan(JArrayExtended.setJArrayResult(plotting, 0));
         await LoadEntityRadar(JArrayExtended.setJArrayResult(plotting, 7));
         await LoadEntityTool(JArrayExtended.setJArrayResult(plotting, 10));
@@ -254,76 +256,87 @@ public class EntityController : MonoBehaviour
 
     public async Task SpawnEntitySatuan(EntitySatuan satuan, string satuanDefault)
     {
-        Debug.Log("Spawn " + satuan.data_info.nama_satuan);
-        GameObject entitySatuan = Instantiate(prefabSatuan);
-        entitySatuan.name = satuan.id_satuan;
-        entitySatuan.transform.position = new Vector2(satuan.lng * 1000, satuan.lat * 1000);
-        entitySatuan.transform.parent = satuanContainer.transform;
-
-        if (satuan.data_style.grup == "10")
+        try
         {
-            satuan.jenis = JenisSatuan.INFANTRY;
-        }
-        else
-        {
-            if (satuan.tipe_tni == null)
+            if (!satuan.data_info.hidewgs || satuan.data_info.warna == "red")
             {
-                await SetDetailSatuan(satuan);
+                Debug.Log("Spawn " + satuan.data_info.nama_satuan);
+                GameObject entitySatuan = Instantiate(prefabSatuan);
+                entitySatuan.name = satuan.id_satuan;
+                entitySatuan.transform.position = new Vector2(satuan.lng * 1000, satuan.lat * 1000);
+                entitySatuan.transform.parent = satuanContainer.transform;
+
+                if (satuan.data_style.grup == "10")
+                {
+                    satuan.jenis = JenisSatuan.INFANTRY;
+                }
+                else
+                {
+                    if (satuan.tipe_tni == null)
+                    {
+                        await SetDetailSatuan(satuan);
+                    }
+                }
+
+                satuan.detector = new Detector(satuan.radar, satuan.sonar);
+
+                DataSatuan entityData = entitySatuan.AddComponent<DataSatuan>();
+                entityData.speed = (float)satuan.data_info.kecepatan_satuan;
+                entityData.id_entity = satuan.id_satuan;
+                entityData.detector = satuan.detector;
+                entityData.armor = satuan.data_info.armor;
+                entityData.opacity = 1;
+                entityData.kebalRanjau = false;
+                entityData.infoSatuan = satuan.data_info;
+                entityData.id_user = satuan.id_user;
+                entityData.jenis = satuan.jenis;
+
+                GameObject radarChild = entitySatuan.transform.GetChild(1).gameObject;
+                radarChild.GetComponent<CircleCollider2D>().radius = getRadiusRadarEntity("utama", satuan.tipe_tni, satuan.height) / 100;
+
+                GameObject jarakPandangChild = entitySatuan.transform.GetChild(2).gameObject;
+                jarakPandangChild.GetComponent<CircleCollider2D>().radius = getRadiusRadarEntity("jarakPandang", satuan.tipe_tni, satuan.height) / 100;
+
+                listSatuan.Add(satuan.id_satuan);
+
+                await ColyseusController.instance.CreateSatuan(new Dictionary<string, object>
+                {
+                    ["id_object"] = satuan.id_satuan,
+                    ["lat"] = satuan.lat,
+                    ["lng"] = satuan.lng,
+                    ["speed"] = satuan.data_info.kecepatan_satuan.ToString() + "|" + satuan.data_info.jenis_kecepatan,
+                    ["heading"] = satuan.heading,
+                    ["armor"] = satuan.data_info.armor,
+                    ["weapon"] = satuan.data_info.weapon,
+                    ["jarakTempuh"] = 0, // Untuk sementara
+                    ["bensin"] = Int64.Parse(satuan.data_info.bahan_bakar),
+                    ["defaultData"] = satuanDefault,
+                    ["info"] = EntitySatuanInfo.ToString(satuan.data_info),
+                    ["type"] = "satuan",
+                    ["tipe_tni"] = satuan.tipe_tni,
+                    //dataEntity["senjataUtama"] = null;
+                    ["bahan_bakar"] = Int64.Parse(satuan.data_info.bahan_bakar),
+                    ["fuel_load"] = Int64.Parse(satuan.data_info.bahan_bakar_load),
+                    ["personil"] = satuan.data_info.personil,
+                    ["style"] = EntitySatuanStyle.ToString(satuan.data_style),
+                    ["nama"] = satuan.id_satuan,
+                    ["altitude"] = 0,
+                    ["alutsista"] = satuan.alutsista,
+                    ["allsenjata"] = JsonConvert.SerializeObject(satuan.allSenjata),
+                    //dataEntity["posisiJalur"] = 0;
+                    ["detector"] = JsonConvert.SerializeObject(satuan.detector),
+                    ["iconNow"] = "gambar",
+                    //dataEntity["listRealShape"] = 0;
+                });
+
+                Debug.Log(satuan.data_info.nama_satuan + " spawned");
             }
         }
-
-        satuan.detector = new Detector(satuan.radar, satuan.sonar);
-
-        DataSatuan entityData = entitySatuan.AddComponent<DataSatuan>();
-        entityData.speed = (float)satuan.data_info.kecepatan_satuan;
-        entityData.id_entity = satuan.id_satuan;
-        entityData.detector = satuan.detector;
-        entityData.armor = satuan.data_info.armor;
-        entityData.opacity = 1;
-        entityData.kebalRanjau = false;
-        entityData.infoSatuan = satuan.data_info;
-        entityData.id_user = satuan.id_user;
-        entityData.jenis = satuan.jenis;
-
-        GameObject radarChild = entitySatuan.transform.GetChild(1).gameObject;
-        radarChild.GetComponent<CircleCollider2D>().radius = getRadiusRadarEntity("utama", satuan.tipe_tni, satuan.height) / 100;
-
-        GameObject jarakPandangChild = entitySatuan.transform.GetChild(2).gameObject;
-        jarakPandangChild.GetComponent<CircleCollider2D>().radius = getRadiusRadarEntity("jarakPandang", satuan.tipe_tni, satuan.height) / 100;
-
-        listSatuan.Add(satuan.id_satuan);
-
-        await ColyseusController.instance.CreateSatuan(new Dictionary<string, object>
+        catch (Exception err)
         {
-            ["id_object"] = satuan.id_satuan,
-            ["lat"] = satuan.lat,
-            ["lng"] = satuan.lng,
-            ["speed"] = satuan.data_info.kecepatan_satuan.ToString() + "|" + satuan.data_info.jenis_kecepatan,
-            ["heading"] = satuan.heading,
-            ["armor"] = satuan.data_info.armor,
-            ["weapon"] = satuan.data_info.weapon,
-            ["jarakTempuh"] = 0, // Untuk sementara
-            ["bensin"] = Int64.Parse(satuan.data_info.bahan_bakar),
-            ["defaultData"] = satuanDefault,
-            ["info"] = EntitySatuanInfo.ToString(satuan.data_info),
-            ["type"] = "satuan",
-            ["tipe_tni"] = satuan.tipe_tni,
-            //dataEntity["senjataUtama"] = null;
-            ["bahan_bakar"] = Int64.Parse(satuan.data_info.bahan_bakar),
-            ["fuel_load"] = Int64.Parse(satuan.data_info.bahan_bakar_load),
-            ["personil"] = satuan.data_info.personil,
-            ["style"] = EntitySatuanStyle.ToString(satuan.data_style),
-            ["nama"] = satuan.id_satuan,
-            ["altitude"] = 0,
-            ["alutsista"] = satuan.alutsista,
-            ["allsenjata"] = JsonConvert.SerializeObject(satuan.allSenjata),
-            //dataEntity["posisiJalur"] = 0;
-            ["detector"] = JsonConvert.SerializeObject(satuan.detector),
-            ["iconNow"] = "gambar",
-            //dataEntity["listRealShape"] = 0;
-        });
-
-        Debug.Log(satuan.data_info.nama_satuan + " spawned");
+            Debug.LogWarning(err);
+        }
+        
     }
 
     public int getRadiusRadarEntity(string status, string jenis, float height)
@@ -625,6 +638,11 @@ public class EntityController : MonoBehaviour
         else if (misi.jenis == "penyapuanRanjau")
         {
             return await SetMisiPenyapuanRanjau(misi);
+        }
+        else if (misi.jenis == "splitPasukan")
+        {
+            Debug.Log("Set misi split pasukan");
+            //return await SetMisiPenyapuanRanjau(misi);
         }
 
         return true;

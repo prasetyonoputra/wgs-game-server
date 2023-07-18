@@ -7,12 +7,11 @@ public class ObjectWalker : MonoBehaviour
 {
     private DataSatuan entityData;
     private DataMisi misiData;
-    private int waypointIndex = 0;
     private DateTime waktuMulaiMisi;
     private DateTimeOffset waktuMulai;
     private Vector2 posisiSekarang, posisiTujuan, posisiSebelum;
     private double heading, distance;
-    public int statusMisi = 0, _statusMisi = 0;
+    public int statusMisi = 0, _statusMisi = 0, waypointIndex = 0;
     private string idMisi;
     private float step;
 
@@ -106,6 +105,10 @@ public class ObjectWalker : MonoBehaviour
                 {
                     statusMisi = 0;
                 }
+            }
+            else
+            {
+                waypointIndex = 0;
             }
         }
         else
